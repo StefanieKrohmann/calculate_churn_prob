@@ -1,0 +1,40 @@
+library(data.table)
+library(testthat)
+library(ChurnProbability)
+
+context("Correct Churn Probability")
+
+# 1. Load Data
+# ==============================================================
+customer_d <- fread("data_customer.csv")
+personal_d <- fread("data_personal.csv")
+
+# 2. Prepare data for analysis
+# ==============================================================
+# Merge the two data tables on the column CustomerId.
+merged_d <- merge(customer_d, personal_d, by="CustomerId", all=FALSE)
+
+# Set the following columns to factors: Exited, Gender. Hint: use the function as.factor().
+merged_d$Exited <- as.factor(merged_d$Exited)
+merged_d$Gender <- as.factor(merged_d$Gender)
+
+test <- churn_probability(merged_d, 15653251)
+print(test)
+
+caluclate_churn_prob(merged_d, merged_d$CustomerId[1])
+max <- merged_d$CustomerId[which.max(merged_d$prediction)]
+print(max)
+
+# 3. Test
+# ==============================================================
+# Write a test as follows: the churn probability for the customer identified in step 3.4 as having the highest probability is
+# always higher than that of the customer identified in the same step as having the lowest probability.
+test_that("calculation is correct", {
+  expect_equal(caluclate_churn_prob(merged_d, 15653251),0.9405975, tolerance = 1e-6)
+  expect_equal(caluclate_churn_prob(merged_d, 15565706),0.04809140, tolerance = 1e-6)
+  expect_equal(caluclate_churn_prob(merged_d, 15685372),0.35305256, tolerance = 1e-6)
+  expect_true(caluclate_churn_prob(merged_d, merged_d$CustomerId[which.max(merged_d$prediction)])) > caluclate_churn_prob(merged_d, merged_d$CustomerId[which.min(merged_d$prediction)])
+})
+
+
+

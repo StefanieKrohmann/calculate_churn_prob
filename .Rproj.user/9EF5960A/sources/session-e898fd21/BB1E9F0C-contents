@@ -1,0 +1,81 @@
+library(data.table)
+
+# 1. Load Data
+# ==============================================================
+customer_d <- fread("data_customer.csv")
+personal_d <- fread("data_personal.csv")
+
+# 2. Prepare data for analysis
+# ==============================================================
+# Merge the two data tables on the column CustomerId. 
+merged_d <- merge(customer_d, personal_d, by="CustomerId", all=FALSE)
+
+# Set the following columns to factors: Exited, Gender. Hint: use the function as.factor().
+merged_d$Exited <- as.factor(merged_d$Exited)
+merged_d$Gender <- as.factor(merged_d$Gender)
+
+# Make a quick check on the data, that everything is as expected. Hint: use the functions str() and summary().
+str(merged_d)
+summary(merged_d)
+
+
+# 3. Predict churn probability 
+# ==============================================================
+# Create a model for churn probability using logistic regression. The outcome variable is Exited (showing if a customer churned or not). 
+# Use as predictors the following variables: CreditScore, Gender, Age, Tenure, Balance, NumOfProducts, HasCrCard, IsActiveMember, EstimatedSalary. 
+# Hint: use the function glm() with the argument family="binomial".
+model <- glm(merged_d$Exited ~ merged_d$CreditScore + merged_d$Gender + merged_d$Age + merged_d$Tenure + merged_d$Balance + merged_d$NumOfProducts + merged_d$HasCrCard + merged_d$IsActiveMember + merged_d$EstimatedSalary, data = merged_d, family = binomial)
+
+# Summarize the model
+summary(model)
+
+# Predict the churn probability for each customer and add this as a new column to your table. 
+# Hint: use the following function: predict(object, newdata, type="response"). 
+# Object is your model for churn probability from the previous step, newdata is your merged data from step 2.1.
+merged_d$prediction <- predict(model, merged_d, type = "response")
+
+# Which are the customer with the highest and the lowest churn probability? 
+highest_churn_prob <- merged_d$CustomerId[which.max(merged_d$prediction)]
+print(highest_churn_prob)
+
+lowest_churn_prob <- merged_d$CustomerId[which.min(merged_d$prediction)]
+print(lowest_churn_prob)
+
+# Compute the average churn probability for men and women.
+average_churn_f <- median(merged_d$prediction[merged_d$Gender=="Female"])
+print(average_churn_f)
+
+average_churn_m <- median(merged_d$prediction[merged_d$Gender=="Male"])
+print(average_churn_m)
+      
+
+# 4. Create a package for churn prediction (45 min) 
+# ==============================================================
+# Create a function that takes as input the dataset and a customer id and returns the churn probability for that customer id only.
+churn_probability <- function(dataset, id){
+  # The function should check if the customer id provided exists in the dataset and throw an error otherwise.
+  if (!(id %in% dataset$CustomerId)) {
+    stop("Customer ID not found in the dataset.")
+  }
+  # create a prediciton model 
+  model <- glm(Exited ~ CreditScore + Gender + Age + Tenure + Balance +
+                 NumOfProducts + HasCrCard + IsActiveMember + EstimatedSalary,
+               data = dataset, family = binomial)
+  # predict churn
+  dataset$churn_prob <- predict(model, dataset, type = "response")
+  # return churn of specific customer
+  return(dataset$churn_prob[dataset$CustomerId==id])
+}
+
+test <- churn_probability(merged_d, 15653251)
+print(test)
+
+# Create a package with this function only. Make sure you specify data.table as dependency.
+
+# Write a test as follows: the churn probability for the customer identified in step 3.4 as having the highest probability is always higher than that of the customer identified in the same step as having the lowest probability.
+
+# Run the test.
+
+# Put your package on GitHub.      
+      
+      

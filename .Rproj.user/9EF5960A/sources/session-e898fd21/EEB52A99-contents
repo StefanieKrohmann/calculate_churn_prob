@@ -1,0 +1,15 @@
+Package: ChurnProbability
+Type: Package
+Title: Calculates churn probability for a dataset
+Version: 0.1.0
+Author: Stefanie
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Depends: data.table
+Encoding: UTF-8
+LazyData: true
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
